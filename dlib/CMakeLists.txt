@@ -251,6 +251,9 @@ if (NOT TARGET dlib)
 
          mark_as_advanced(pthreadlib xlib xlib_path x11_path)
       else () ##################################################################################
+         if(HUNTER_ENABLED)
+         else()
+
          # link to the nsl library if it exists.  this is something you need sometimes 
          find_library(nsllib nsl)
          if (nsllib)
@@ -280,6 +283,8 @@ if (NOT TARGET dlib)
          endif()
 
          mark_as_advanced(nsllib pthreadlib socketlib)
+
+         endif()
       endif () ##################################################################################
 
       if (NOT DLIB_NO_GUI_SUPPORT)
