@@ -514,7 +514,7 @@ if (NOT TARGET dlib)
          endif()
 
          if (DLIB_USE_LAPACK)
-            if (lapack_found)
+            if (lapack_found AND NOT ANDROID)
                list (APPEND dlib_needed_public_libraries ${lapack_libraries})
                if (lapack_with_underscore)
                   set(LAPACK_FORCE_UNDERSCORE 1)
