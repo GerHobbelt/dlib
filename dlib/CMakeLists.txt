@@ -435,71 +435,15 @@ if (NOT TARGET dlib)
       INCLUDE (CheckFunctionExists)
 
       if (DLIB_GIF_SUPPORT)
-         find_package(GIF QUIET)
-         if (GIF_FOUND)
-            list (APPEND dlib_needed_public_includes ${GIF_INCLUDE_DIR})
-            list (APPEND dlib_needed_public_libraries ${GIF_LIBRARY})
-         else()
-            set(DLIB_GIF_SUPPORT OFF CACHE STRING ${DLIB_GIF_SUPPORT_STR} FORCE )
-            toggle_preprocessor_switch(DLIB_GIF_SUPPORT)
-         endif()
+         hunter_add_package(giflib)
+         find_package(giflib CONFIG REQUIRED)
+         list (APPEND dlib_needed_public_libraries giflib::giflib})
       endif()
 
       if (DLIB_PNG_SUPPORT)
-         include(cmake_utils/find_libpng.cmake)
-         if (PNG_FOUND)
-            list (APPEND dlib_needed_private_includes ${PNG_INCLUDE_DIR})
-            list (APPEND dlib_needed_private_libraries ${PNG_LIBRARIES})
-         else()
-            # If we can't find libpng then statically compile it in.
-            include_directories(external/libpng external/zlib)
-            set(source_files ${source_files}
-               external/libpng/arm/arm_init.c
-               external/libpng/arm/filter_neon_intrinsics.c
-               external/libpng/arm/palette_neon_intrinsics.c
-               external/libpng/png.c
-               external/libpng/pngerror.c
-               external/libpng/pngget.c
-               external/libpng/pngmem.c
-               external/libpng/pngpread.c
-               external/libpng/pngread.c
-               external/libpng/pngrio.c
-               external/libpng/pngrtran.c
-               external/libpng/pngrutil.c
-               external/libpng/pngset.c
-               external/libpng/pngtrans.c
-               external/libpng/pngwio.c
-               external/libpng/pngwrite.c
-               external/libpng/pngwtran.c
-               external/libpng/pngwutil.c
-               external/zlib/adler32.c
-               external/zlib/compress.c
-               external/zlib/crc32.c
-               external/zlib/deflate.c
-               external/zlib/gzclose.c
-               external/zlib/gzlib.c
-               external/zlib/gzread.c
-               external/zlib/gzwrite.c
-               external/zlib/infback.c
-               external/zlib/inffast.c
-               external/zlib/inflate.c
-               external/zlib/inftrees.c
-               external/zlib/trees.c
-               external/zlib/uncompr.c
-               external/zlib/zutil.c
-               )
-
-            include(cmake_utils/check_if_neon_available.cmake)
-            if (ARM_NEON_IS_AVAILABLE)
-               message (STATUS "NEON instructions will be used for libpng.")
-               enable_language(ASM)
-               set(source_files ${source_files}
-                  external/libpng/arm/arm_init.c
-                  external/libpng/arm/filter_neon_intrinsics.c
-                  external/libpng/arm/filter_neon.S
-                  )
-               set_source_files_properties(external/libpng/arm/filter_neon.S PROPERTIES COMPILE_FLAGS "${CMAKE_ASM_FLAGS} ${CMAKE_CXX_FLAGS} -x assembler-with-cpp")
-            endif()
+         hunter_add_package(PNG)
+         find_package(PNG CONFIG REQUIRED)
+         list(APPEND dlib_needed_private_libraries PNG::png)
          endif()
          set(source_files ${source_files}
             image_loader/png_loader.cpp
@@ -508,60 +452,9 @@ if (NOT TARGET dlib)
       endif()
 
       if (DLIB_JPEG_SUPPORT)
-         include(cmake_utils/find_libjpeg.cmake)
-         if (JPEG_FOUND)
-            list (APPEND dlib_needed_private_includes ${JPEG_INCLUDE_DIR})
-            list (APPEND dlib_needed_private_libraries ${JPEG_LIBRARY})
-         else()
-            # If we can't find libjpeg then statically compile it in.
-            add_definitions(-DDLIB_JPEG_STATIC)
-            set(source_files ${source_files}
-              external/libjpeg/jaricom.c
-              external/libjpeg/jcapimin.c
-              external/libjpeg/jcapistd.c
-              external/libjpeg/jcarith.c
-              external/libjpeg/jccoefct.c
-              external/libjpeg/jccolor.c
-              external/libjpeg/jcdctmgr.c
-              external/libjpeg/jchuff.c
-              external/libjpeg/jcinit.c
-              external/libjpeg/jcmainct.c
-              external/libjpeg/jcmarker.c
-              external/libjpeg/jcmaster.c
-              external/libjpeg/jcomapi.c
-              external/libjpeg/jcparam.c
-              external/libjpeg/jcprepct.c
-              external/libjpeg/jcsample.c
-              external/libjpeg/jdapimin.c
-              external/libjpeg/jdapistd.c
-              external/libjpeg/jdarith.c
-              external/libjpeg/jdatadst.c
-              external/libjpeg/jdatasrc.c
-              external/libjpeg/jdcoefct.c
-              external/libjpeg/jdcolor.c
-              external/libjpeg/jddctmgr.c
-              external/libjpeg/jdhuff.c
-              external/libjpeg/jdinput.c
-              external/libjpeg/jdmainct.c
-              external/libjpeg/jdmarker.c
-              external/libjpeg/jdmaster.c
-              external/libjpeg/jdmerge.c
-              external/libjpeg/jdpostct.c
-              external/libjpeg/jdsample.c
-              external/libjpeg/jerror.c
-              external/libjpeg/jfdctflt.c
-              external/libjpeg/jfdctfst.c
-              external/libjpeg/jfdctint.c
-              external/libjpeg/jidctflt.c
-              external/libjpeg/jidctfst.c
-              external/libjpeg/jidctint.c
-              external/libjpeg/jmemmgr.c
-              external/libjpeg/jmemnobs.c
-              external/libjpeg/jquant1.c
-              external/libjpeg/jquant2.c
-              external/libjpeg/jutils.c
-               )
-         endif()
+         hunter_add_package(Jpeg)
+         find_package(JPEG CONFIG REQUIRED)
+         list(APPEND dlib_needed_private_libraries JPEG::jpeg)
          set(source_files ${source_files}
             image_loader/jpeg_loader.cpp
             image_saver/save_jpeg.cpp
@@ -721,9 +614,7 @@ if (NOT TARGET dlib)
                   "-DCMAKE_INCLUDE_PATH=${CMAKE_INCLUDE_PATH}"
                   "-DCMAKE_LIBRARY_PATH=${CMAKE_LIBRARY_PATH}")
 
-               if (NOT MSVC) # see https://github.com/davisking/dlib/issues/363
-                  list(APPEND CUDA_TEST_CMAKE_FLAGS "-DCUDA_HOST_COMPILER=${CUDA_HOST_COMPILER}")
-               endif()
+               list(APPEND CUDA_TEST_CMAKE_FLAGS "-DCUDA_HOST_COMPILER=${CUDA_HOST_COMPILER}")
 
                try_compile(cuda_test_compile_worked 
                   ${PROJECT_BINARY_DIR}/cuda_test_build 
@@ -833,16 +724,9 @@ if (NOT TARGET dlib)
 
 
       if (DLIB_LINK_WITH_SQLITE3)
-         find_library(sqlite sqlite3)
-         # make sure sqlite3.h is in the include path
-         find_path(sqlite_path sqlite3.h)
-         if (sqlite AND sqlite_path)
-            list (APPEND dlib_needed_public_includes ${sqlite_path})
-            list (APPEND dlib_needed_public_libraries ${sqlite} )
-         else()
-            set(DLIB_LINK_WITH_SQLITE3 OFF CACHE STRING ${DLIB_LINK_WITH_SQLITE3_STR} FORCE )
-         endif()
-         mark_as_advanced(sqlite sqlite_path)
+         hunter_add_package(sqlite3)
+         find_package(sqlite3 CONFIG REQUIRED)
+         list (APPEND dlib_needed_public_libraries sqlite3::sqlite3 )
       endif()
 
 
@@ -881,7 +765,7 @@ if (NOT TARGET dlib)
          # stuff, so we have to set the include path manually still, which we do here.
          include_directories(${dlib_needed_public_includes})
          cuda_add_library(dlib ${source_files} )
-      else()
+      elseif(NOT DLIB_HEADER_ONLY)
          add_library(dlib ${source_files} )
       endif()
 
@@ -898,7 +782,7 @@ if (NOT TARGET dlib)
    target_link_libraries(dlib PRIVATE ${dlib_needed_private_libraries})
    target_compile_options(dlib PUBLIC ${dlib_needed_public_cflags})
    if (DLIB_IN_PROJECT_BUILD)
-      target_compile_options(dlib PUBLIC ${active_preprocessor_switches})
+      target_compile_options(dlib ${dlib_keyword} ${active_preprocessor_switches})
    else()
       # These are private in this case because they will be controlled by the
       # contents of dlib/config.h once it's installed. But for in project
@@ -931,7 +815,7 @@ if (NOT TARGET dlib)
       target_compile_options(dlib PUBLIC ${active_compile_opts})
       target_compile_options(dlib PRIVATE ${active_compile_opts_private})
    else()
-      target_compile_options(dlib PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${active_compile_opts}>)
+      target_compile_options(dlib ${dlib_keyword} $<$<COMPILE_LANGUAGE:CXX>:${active_compile_opts}>)
       target_compile_options(dlib PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${active_compile_opts_private}>)
    endif()
 

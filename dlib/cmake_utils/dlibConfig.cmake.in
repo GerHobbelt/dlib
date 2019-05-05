@@ -6,30 +6,44 @@
 #  Usage from an external project:
 #    In your CMakeLists.txt, add these lines:
 #
-#    find_package(dlib REQUIRED)
-#    target_link_libraries(MY_TARGET_NAME dlib::dlib)
+#    FIND_PACKAGE(dlib REQUIRED)
+#    TARGET_LINK_LIBRARIES(MY_TARGET_NAME ${dlib_LIBRARIES})
+#
+#    This file will define the following variables:
+#      - dlib_LIBRARIES                : The list of all imported targets for dlib modules.
+#      - dlib_INCLUDE_DIRS             : The dlib include directories.
+#      - dlib_VERSION                  : The version of this dlib build.
+#      - dlib_VERSION_MAJOR            : Major version part of this dlib revision.
+#      - dlib_VERSION_MINOR            : Minor version part of this dlib revision.
 #
 # ===================================================================================
 
 
-
- 
-# Our library dependencies (contains definitions for IMPORTED targets)
-if(NOT TARGET dlib-shared AND NOT dlib_BINARY_DIR)
-   # Compute paths
-   get_filename_component(dlib_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-   include("${dlib_CMAKE_DIR}/dlib.cmake")
-   # Check if Threads::Threads target is required and find it if necessary
-   get_target_property(dlib_deps_threads_check dlib::dlib INTERFACE_LINK_LIBRARIES)
-   list(FIND dlib_deps_threads_check "Threads::Threads" dlib_deps_threads_idx)
-   if (${dlib_deps_threads_idx} GREATER -1)
-      if (NOT TARGET Threads)
-         find_package(Threads REQUIRED)
-      endif()
-   endif()
-   unset(dlib_deps_threads_idx)
-   unset(dlib_deps_threads_check)
+if("@OpenBLAS_FOUND@")
+   find_package(OpenBLAS CONFIG REQUIRED)
 endif()
+
+if("@Threads_FOUND@")
+   find_package(Threads REQUIRED)
+endif()
+
+if("@DLIB_LINK_WITH_SQLITE3@")
+   find_package(sqlite3 CONFIG REQUIRED)
+endif()
+ 
+if("@DLIB_GIF_SUPPORT@")
+   find_package(giflib CONFIG REQUIRED)
+endif()
+ 
+if("@DLIB_PNG_SUPPORT@")
+   find_package(PNG CONFIG REQUIRED)
+endif()
+
+if("@DLIB_JPEG_SUPPORT@")
+   find_package(JPEG CONFIG REQUIRED)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/dlib.cmake")
 
 set(dlib_LIBRARIES dlib::dlib)
 set(dlib_LIBS      dlib::dlib)
