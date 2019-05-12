@@ -6,7 +6,7 @@ HunterGate(
     SHA1 "46089aabb7c8cc181a70a7a61699f526c116cedf"
 )
 
-project(dlib VERSION 19.14)
+project(dlib VERSION 19.17)
 
 project(dlib_project)
 
