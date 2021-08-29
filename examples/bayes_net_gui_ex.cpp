@@ -151,6 +151,8 @@ int main(int argc, const char** argv)
     // wait until the user closes this window before we let the program 
     // terminate.
     my_window.wait_until_closed();
+
+	return 0;
 }
 
 // ----------------------------------------------------------------------------------------
@@ -166,8 +168,7 @@ int main(int argc, const char** argv)
 // 
 int WINAPI WinMain (HINSTANCE, HINSTANCE, PSTR cmds, int)
 {
-    main();
-    return 0;
+    return main(0, NULL);
 }
 #endif
 
