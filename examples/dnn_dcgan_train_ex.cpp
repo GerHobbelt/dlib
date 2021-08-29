@@ -103,7 +103,14 @@ std::vector<matrix<unsigned char>> get_generated_images(const tensor& out)
     return images;
 }
 
-int main(int argc, char** argv) try
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_dnn_dcgan_train_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+try
 {
     // This example is going to run on the MNIST dataset.
     if (argc != 2)

@@ -150,7 +150,13 @@ void deserialize (feature_extractor&       , std::istream& ) {}
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_assignment_learning_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     try
     {

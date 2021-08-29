@@ -46,7 +46,13 @@ private:
     ofstream fout;
 };
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_logger_custom_output_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     my_hook hook;
     // This tells all dlib loggers to send their logging events to the hook object.  That

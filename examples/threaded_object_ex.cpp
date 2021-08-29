@@ -51,7 +51,13 @@ private:
     }
 };
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_threaded_object_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // Create an instance of our threaded object.   
     my_object t;

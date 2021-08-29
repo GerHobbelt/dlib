@@ -13,7 +13,13 @@
 using namespace std;
 using namespace dlib;
 
-int main ()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_max_cost_assignment_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // Let's imagine you need to assign N people to N jobs.  Additionally, each person will make
     // your company a certain amount of money at each job, but each person has different skills

@@ -200,7 +200,14 @@ std::vector<image_info> get_imagenet_val_listing(
 
 // ----------------------------------------------------------------------------------------
 
-int main(int argc, char** argv) try
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_dnn_imagenet_train_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+try
 {
     if (argc != 3)
     {

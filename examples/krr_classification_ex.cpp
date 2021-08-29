@@ -24,7 +24,13 @@ using namespace std;
 using namespace dlib;
 
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_krr_classification_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // This typedef declares a matrix with 2 rows and 1 column.  It will be the
     // object that contains each of our 2 dimensional samples.   (Note that if you wanted 

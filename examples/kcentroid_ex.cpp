@@ -32,7 +32,13 @@ double sinc(double x)
     return sin(x)/x;
 }
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_kcentroid_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // Here we declare that our samples will be 2 dimensional column vectors.  
     // (Note that if you don't know the dimensionality of your vectors at compile time

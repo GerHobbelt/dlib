@@ -56,9 +56,14 @@ void test_thread (void*)
     // unlocking count_mutex for us.
 }
 
-int main()
-{
 
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_threads_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+{
     cout << "Create some threads" << endl;
     for (int i = 0; i < thread_count; ++i)
     {

@@ -39,7 +39,13 @@ void example_using_lambda_functions();
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_parallel_for_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // We have 2 examples, each contained in a separate function.  Both examples perform
     // exactly the same computation, however, the second does so using parallel for loops.

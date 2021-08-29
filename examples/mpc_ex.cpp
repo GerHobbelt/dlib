@@ -29,7 +29,13 @@ using namespace dlib;
 
 //  ----------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_mpc_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     const int STATES = 4;
     const int CONTROLS = 2;

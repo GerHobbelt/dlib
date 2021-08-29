@@ -99,8 +99,14 @@ void make_simple_test_data (
 
 // ----------------------------------------------------------------------------------------
 
-int main()
-{  
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_object_detector_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+{
     try
     {
         // The first thing we do is create the set of 3 images discussed above.  

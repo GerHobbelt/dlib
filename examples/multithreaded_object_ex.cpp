@@ -106,7 +106,13 @@ private:
 
 };
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_multithreaded_object_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // tell the logger to output all messages
     dlog.set_level(LALL);

@@ -84,7 +84,13 @@ class web_server : public server_http
 
 };
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_server_http_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     try
     {

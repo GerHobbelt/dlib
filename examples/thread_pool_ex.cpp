@@ -96,7 +96,14 @@ public:
 
 // ----------------------------------------------------------------------------------------
 
-int main() try
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_thread_pool_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+try
 {
     // tell the logger to print out everything
     dlog.set_level(LALL);

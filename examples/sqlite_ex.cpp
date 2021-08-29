@@ -30,7 +30,14 @@ bool table_exists (
 
 // ----------------------------------------------------------------------------------------
 
-int main() try
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_sqlite_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+try
 {
     // Open the SQLite database in the stuff.db file (or create an empty database in
     // stuff.db if it doesn't exist).

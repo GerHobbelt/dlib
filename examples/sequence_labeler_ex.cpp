@@ -201,7 +201,13 @@ void make_dataset (
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_sequence_labeler_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // We need a dataset to test the machine learning algorithms.  So we are going to 
     // define a HMM based on the following two matrices and then randomly sample a

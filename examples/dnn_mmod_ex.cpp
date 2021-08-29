@@ -68,7 +68,14 @@ using net_type  = loss_mmod<con<1,6,6,1,1,rcon3<rcon3<rcon3<downsampler<input_rg
 
 // ----------------------------------------------------------------------------------------
 
-int main(int argc, char** argv) try
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_dnn_mmod_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+try
 {
     // In this example we are going to train a face detector based on the
     // small faces dataset in the examples/faces directory.  So the first

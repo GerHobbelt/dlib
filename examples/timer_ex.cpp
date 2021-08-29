@@ -30,7 +30,13 @@ public:
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_timer_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     timer_example e;
 

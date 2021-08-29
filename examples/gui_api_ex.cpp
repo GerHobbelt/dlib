@@ -202,7 +202,13 @@ private:
 
 //  ----------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_gui_api_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // create our window
     win my_window;

@@ -25,9 +25,14 @@ void custom_matrix_expressions_example();
 
 // ----------------------------------------------------------------------------------------
 
-int main()
-{
 
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_matrix_expressions_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+{
     // Declare some variables used below
     matrix<double,3,1> y;
     matrix<double,3,3> M;

@@ -144,7 +144,13 @@ void generate_data (
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_custom_trainer_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     std::vector<sample_type> samples;
     std::vector<string> labels;

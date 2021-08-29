@@ -171,7 +171,13 @@ void make_training_examples(
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_graph_labeling_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     try
     {

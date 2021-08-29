@@ -113,7 +113,14 @@ public:
 
 // ----------------------------------------------------------------------------------------
 
-int main() try
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_optimization_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+try
 {
     // Set the starting point to (4,8).  This is the point the optimization algorithm
     // will start out from and it will move it closer and closer to the function's 

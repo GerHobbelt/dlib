@@ -43,7 +43,14 @@ using net_type = loss_mmod<con<1,9,9,1,1,rcon5<rcon5<rcon5<downsampler<input_rgb
 
 // ----------------------------------------------------------------------------------------
 
-int main() try
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_dnn_mmod_find_cars_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+try
 {
     net_type net;
     shape_predictor sp;

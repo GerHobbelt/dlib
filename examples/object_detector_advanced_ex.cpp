@@ -191,8 +191,14 @@ private:
 
 // ----------------------------------------------------------------------------------------
 
-int main()
-{  
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_object_detector_advanced_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+{
     try
     {
         // Get some data 

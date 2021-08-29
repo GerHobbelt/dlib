@@ -25,7 +25,14 @@
 using namespace std;
 using namespace dlib;
  
-int main(int argc, char** argv) try
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_dnn_introduction_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+try
 {
     // This example is going to run on the MNIST dataset.  
     if (argc != 2)

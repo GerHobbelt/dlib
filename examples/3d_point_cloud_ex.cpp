@@ -16,7 +16,13 @@ using namespace std;
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_3d_point_cloud_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // Let's make a point cloud that looks like a 3D spiral.
     std::vector<perspective_window::overlay_dot> points;

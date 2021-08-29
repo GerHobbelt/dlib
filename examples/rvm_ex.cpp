@@ -25,7 +25,13 @@ using namespace std;
 using namespace dlib;
 
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_rvm_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // The rvm functions use column vectors to contain a lot of the data on which they 
     // operate. So the first thing we do here is declare a convenient typedef.  

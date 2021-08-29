@@ -14,7 +14,13 @@ using namespace std;
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_matrix_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // Let's begin this example by using the library to solve a simple 
     // linear system.

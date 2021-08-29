@@ -127,7 +127,14 @@ using pres  = prelu<add_prev1<bn_con<con<8,3,3,1,1,prelu<bn_con<con<8,3,3,1,1,ta
 
 // ----------------------------------------------------------------------------------------
 
-int main(int argc, char** argv) try
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_dnn_introduction2_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+try
 {
     if (argc != 2)
     {

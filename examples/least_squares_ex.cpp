@@ -86,7 +86,13 @@ parameter_vector residual_derivative (
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_least_squares_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     try
     {

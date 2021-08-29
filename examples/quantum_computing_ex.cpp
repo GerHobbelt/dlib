@@ -236,7 +236,13 @@ public:
 // ----------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_quatum_computing_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // seed the random number generator
     rnd.set_seed(cast_to_string(time(0)));

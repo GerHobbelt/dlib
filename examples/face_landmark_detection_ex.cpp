@@ -60,8 +60,14 @@ using namespace std;
 
 // ----------------------------------------------------------------------------------------
 
-int main(int argc, char** argv)
-{  
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_face_landmark_detection_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+{
     try
     {
         // This example takes in a shape model file and then a list of images to

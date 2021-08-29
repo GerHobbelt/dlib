@@ -249,7 +249,13 @@ std::vector<detection> make_random_detections(long num_dets)
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_learning_to_track_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     initialize_object_properties();
 

@@ -36,7 +36,13 @@ public:
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_member_function_pointer_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // create a pointer that can point to member functions that take no arguments
     member_function_pointer<> mfp1;

@@ -23,7 +23,13 @@ using namespace std;
 using namespace dlib;
 
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_mlp_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // The mlp takes column vectors as input and gives column vectors as output.  The dlib::matrix
     // object is used to represent the column vectors. So the first thing we do here is declare 

@@ -54,7 +54,13 @@ double gg5(double x)
     return 1/(1 + x*x);
 }
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_integrate_function_adapt_simp_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // We first define a tolerance parameter.  Roughly speaking, a lower tolerance will
     // result in a more accurate approximation of the true integral.  However, there are 

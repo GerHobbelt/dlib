@@ -195,7 +195,13 @@ using anet_type = loss_metric<fc_no_bias<128,avg_pool_everything<
 
 // ----------------------------------------------------------------------------------------
 
-int main(int argc, char** argv)
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_dnn_metrix_learning_on_images_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     if (argc != 2)
     {

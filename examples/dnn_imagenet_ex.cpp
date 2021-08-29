@@ -110,7 +110,14 @@ void randomly_crop_images (
 
 // ----------------------------------------------------------------------------------------
 
-int main(int argc, char** argv) try
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_dnn_imagenet_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+try
 {
     if (argc == 1)
     {

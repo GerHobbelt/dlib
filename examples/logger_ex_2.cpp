@@ -108,7 +108,13 @@ void setup_loggers (
     // See the documentation for the configure_loggers_from_file() function for details.
 }
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_logger2_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     setup_loggers();
 

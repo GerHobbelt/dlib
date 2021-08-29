@@ -166,7 +166,13 @@ void print_segment (
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_seqeunce_segmenter_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // Finally we make it into the main program body.  So the first thing we do is get our
     // training data.

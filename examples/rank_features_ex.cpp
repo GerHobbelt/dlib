@@ -27,9 +27,14 @@ using namespace std;
 using namespace dlib;
 
 
-int main()
-{
 
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_rank_features_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+{
     // This first typedef declares a matrix with 4 rows and 1 column.  It will be the
     // object that contains each of our 4 dimensional samples.  
     typedef matrix<double, 4, 1> sample_type;

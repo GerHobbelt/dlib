@@ -32,7 +32,13 @@ double sinc(double x)
     return 2*sin(x)/x;
 }
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_one_class_classifiers_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // We will use column vectors to store our points.  Here we make a convenient typedef
     // for the kind of vector we will use.

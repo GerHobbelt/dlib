@@ -37,7 +37,13 @@
 using namespace dlib;
 using namespace std;
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_webcam_face_pose_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     try
     {

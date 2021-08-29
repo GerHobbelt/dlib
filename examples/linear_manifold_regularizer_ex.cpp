@@ -133,7 +133,13 @@ void test_manifold_regularization (
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_linear_manifold_regularizer_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // Run the test without any manifold regularization. 
     test_manifold_regularization(0);

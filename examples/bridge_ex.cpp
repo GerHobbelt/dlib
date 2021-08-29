@@ -61,7 +61,13 @@ void run_example_4();
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_bridge_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     run_example_1();
     run_example_2();

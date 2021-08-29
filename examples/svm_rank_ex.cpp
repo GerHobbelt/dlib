@@ -29,7 +29,13 @@ using namespace std;
 using namespace dlib;
 
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_svm_rank_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     try
     {

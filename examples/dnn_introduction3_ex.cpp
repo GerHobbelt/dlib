@@ -59,7 +59,14 @@ private:
 };
 
 
-int main() try
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_dnn_introduction3_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+try
 {
     // Let's instantiate our network in train mode.
     model::train net;

@@ -130,7 +130,13 @@ namespace dlib
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_using_custom_kernels_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // We are going to be working with 2 dimensional samples and trying to perform
     // binary classification on them using our new ukf_kernel.

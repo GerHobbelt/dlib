@@ -25,7 +25,13 @@ double sinc(double x)
     return sin(x)/x;
 }
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_krls_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // Here we declare that our samples will be 1 dimensional column vectors.  In general, 
     // you can use N dimensional vectors as inputs to the krls object.  But here we only 

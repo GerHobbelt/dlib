@@ -134,7 +134,13 @@ private:
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_bayes_net_gui_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // create our window
     main_window my_window;

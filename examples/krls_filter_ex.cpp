@@ -27,7 +27,13 @@ double sinc(double x)
     return sin(x)/x + x;
 }
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_krls_filter_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // Here we declare that our samples will be 1 dimensional column vectors.  The reason for
     // using a matrix here is that in general you can use N dimensional vectors as inputs to the

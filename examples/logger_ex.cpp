@@ -32,7 +32,13 @@ using namespace dlib;
 // which is what I am doing here.  The following statement creates a logger that is named example.
 logger dlog("example");
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_logger_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // Every logger has a logging level (given by dlog.level()).  Each log message is tagged with a
     // level and only levels equal to or higher than dlog.level() will be printed.  By default all 

@@ -39,7 +39,13 @@ column_vector train_three_class_classifier (const std::vector<sample_type>& samp
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_svm_struct_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // In this example, we have three types of samples: class 0, 1, or 2.  That is, each of
     // our sample vectors falls into one of three classes.  To keep this example very

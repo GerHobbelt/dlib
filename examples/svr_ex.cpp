@@ -24,7 +24,13 @@ double sinc(double x)
     return sin(x)/x;
 }
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_svr_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // Here we declare that our samples will be 1 dimensional column vectors.  
     typedef matrix<double,1,1> sample_type;

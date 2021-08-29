@@ -16,7 +16,13 @@
 
 using namespace dlib;
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_hough_transform_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // First let's make a 400x400 image.  This will form the input to the Hough transform.
     array2d<unsigned char> img(400,400);

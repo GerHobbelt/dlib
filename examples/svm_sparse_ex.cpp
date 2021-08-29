@@ -21,7 +21,13 @@ using namespace std;
 using namespace dlib;
 
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_svm_sparse_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // In this example program we will be dealing with feature vectors that are sparse (i.e. most
     // of the values in each vector are zero).  So rather than using a dlib::matrix we can use

@@ -114,7 +114,13 @@ void test_empirical_kernel_map (
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_empirical_kernel_map_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     std::vector<sample_type> samples;
     std::vector<double> labels;

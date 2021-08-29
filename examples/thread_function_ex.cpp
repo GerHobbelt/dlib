@@ -34,7 +34,13 @@ void thread_increment(double& a)
     a += 1;
 }
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_thread_function_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // create a thread that will call thread_1(45.6)
     thread_function t1(thread_1,45.6);

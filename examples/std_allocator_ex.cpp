@@ -22,7 +22,13 @@ using namespace std;
 using namespace dlib;
 
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_std_allocator_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // Make a typedef for an allocator that uses the thread safe memory_manager_stateless object with a 
     // global memory pool.  This version of the memory_manager_stateless object keeps everything it allocates

@@ -23,7 +23,13 @@ double sinc(double x)
     return sin(x)/x;
 }
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_running_stats_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     running_stats<double> rs;
 

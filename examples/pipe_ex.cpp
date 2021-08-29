@@ -137,7 +137,13 @@ private:
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_pipe_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     // Set the dlog object so that it logs everything.
     dlog.set_level(LALL);

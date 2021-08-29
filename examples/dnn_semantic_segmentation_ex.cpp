@@ -104,7 +104,14 @@ std::string get_most_prominent_non_background_classlabel(const matrix<uint16_t>&
 
 // ----------------------------------------------------------------------------------------
 
-int main(int argc, char** argv) try
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_dnn_semantic_segmentation_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+try
 {
     if (argc != 2)
     {

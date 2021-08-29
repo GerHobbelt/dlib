@@ -168,8 +168,14 @@ void throw_invalid_box_error_message (
 
 // ----------------------------------------------------------------------------------------
 
-int main(int argc, char** argv)
-{  
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_train_object_detector_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+{
     try
     {
         command_line_parser parser;

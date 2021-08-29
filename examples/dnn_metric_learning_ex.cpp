@@ -33,7 +33,14 @@ using namespace std;
 using namespace dlib;
 
 
-int main() try
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_dnn_metric_learning_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+try
 {
     // The API for doing metric learning is very similar to the API for
     // multi-class classification.  In fact, the inputs are the same, a bunch of

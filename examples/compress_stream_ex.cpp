@@ -44,8 +44,14 @@ using namespace std;
 using namespace dlib;
 
 
-int main(int argc, char** argv)
-{  
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_compress_stream_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+{
     try
     {
         command_line_parser parser;

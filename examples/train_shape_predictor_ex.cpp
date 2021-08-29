@@ -38,7 +38,13 @@ std::vector<std::vector<double> > get_interocular_distances (
 
 // ----------------------------------------------------------------------------------------
 
-int main(int argc, char** argv)
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_train_shape_predictor_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     try
     {

@@ -61,7 +61,14 @@ using net_type = loss_multiclass_log<
         input<matrix<unsigned char>>
         >>>>>>>>;
 
-int main(int argc, char** argv) try
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_dnn_inception_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
+try
 {
     // This example is going to run on the MNIST dataset.
     if (argc != 2)

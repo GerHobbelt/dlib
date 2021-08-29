@@ -58,7 +58,13 @@ void bsp_job_other_nodes (bsp_context& bsp, long grid_resolution);
 
 // ----------------------------------------------------------------------------------------
 
-int main(int argc, char** argv)
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_bsp_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     try
     {

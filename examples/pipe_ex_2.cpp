@@ -127,7 +127,13 @@ private:
 
 // ----------------------------------------------------------------------------------------
 
-int main()
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      dlib_pipe2_ex_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     pipe_example pe;
 
