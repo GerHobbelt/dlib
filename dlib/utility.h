@@ -43,12 +43,12 @@ namespace dlib
     // ---------------------------------------------------------------------
 
     template <typename First, typename... Rest>
-    struct are_nothrow_move_construtible
+    struct are_nothrow_move_constructible
         : std::integral_constant<bool, std::is_nothrow_move_constructible<First>::value &&
-                                       are_nothrow_move_construtible<Rest...>::value> {};
+                                       are_nothrow_move_constructible<Rest...>::value> {};
 
     template <typename T>
-    struct are_nothrow_move_construtible<T> : std::is_nothrow_move_constructible<T> {};
+    struct are_nothrow_move_constructible<T> : std::is_nothrow_move_constructible<T> {};
 
     // ---------------------------------------------------------------------
 
@@ -63,12 +63,12 @@ namespace dlib
     // ---------------------------------------------------------------------
 
     template <typename First, typename... Rest>
-    struct are_nothrow_copy_construtible
+    struct are_nothrow_copy_constructible
         : std::integral_constant<bool, std::is_nothrow_copy_constructible<First>::value &&
-                                       are_nothrow_copy_construtible<Rest...>::value> {};
+                                       are_nothrow_copy_constructible<Rest...>::value> {};
 
     template <typename T>
-    struct are_nothrow_copy_construtible<T> : std::is_nothrow_copy_constructible<T> {};
+    struct are_nothrow_copy_constructible<T> : std::is_nothrow_copy_constructible<T> {};
 
     // ---------------------------------------------------------------------
 
@@ -122,6 +122,19 @@ namespace dlib
 
     template <typename T>
     struct are_nothrow_swappable<T> : is_nothrow_swappable<T> {};
+
+    // ---------------------------------------------------------------------
+
+    template<bool First, bool... Rest>
+    struct And : std::integral_constant<bool, First && And<Rest...>::value> {};
+
+    template<bool Value>
+    struct And<Value> : std::integral_constant<bool, Value>{};
+
+    // ---------------------------------------------------------------------
+
+    template<std::size_t I>
+    using size_ = std::integral_constant<std::size_t, I>;
 
     // ---------------------------------------------------------------------
 }
