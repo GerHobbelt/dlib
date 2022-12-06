@@ -1,4 +1,4 @@
-// Copyright (C) 2016  Davis E. King (davis@dlib.net)
+// Copyright (C) 2021  Davis E. King (davis@dlib.net)
 // License: Boost Software License   See LICENSE.txt for the full license.
 #ifndef DLIB_INVOKE_Hh_
 #define DLIB_INVOKE_Hh_
@@ -9,8 +9,11 @@
 
 namespace dlib
 {
-    // ----------------------------------------------------------------------------------------
-    namespace detail {
+
+// ----------------------------------------------------------------------------------------
+
+    namespace detail 
+    {
         template< typename T >
         struct is_reference_wrapper : std::false_type {};
         template< typename U >
@@ -148,8 +151,10 @@ namespace dlib
         {
             return std::forward<F>( f )( std::forward<Args>( args )...);
         }
-    }
+    } // end namespace detail
 
+// ----------------------------------------------------------------------------------------
+    
     template< typename F, typename... Args>
     constexpr auto invoke(F && f, Args &&... args)
     /*!
@@ -163,7 +168,7 @@ namespace dlib
         return detail::INVOKE(std::forward<F>( f ), std::forward<Args>( args )...);
     }
 
-    // ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
 
     namespace detail
     {
@@ -179,7 +184,9 @@ namespace dlib
             static constexpr bool value = true;
             using type = decltype( dlib::invoke(std::declval<F>(), std::declval<Args>()...) );
         };
-    }
+    } // end namespace detail
+
+// ----------------------------------------------------------------------------------------
 
     template< typename F, typename... Args >
     struct invoke_result : detail::invoke_traits< void, F, Args...> {};
@@ -197,7 +204,7 @@ namespace dlib
             - works with C++11 onwards
     !*/
 
-    // ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
 
     template< typename F, typename... Args >
     struct is_invocable : std::integral_constant<bool, detail::invoke_traits< void, F, Args...>::value> {};
@@ -207,7 +214,7 @@ namespace dlib
             - works with C++11 onwards
     !*/
 
-    // ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
 
     template <typename R, typename F, typename... Args>
     struct is_invocable_r : std::integral_constant<bool, dlib::is_invocable<F, Args...>::value &&
@@ -218,7 +225,7 @@ namespace dlib
             - works with C++11 onwards
     !*/
 
-    // ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
 
     template< typename R, typename F, typename... Args>
     constexpr typename std::enable_if<dlib::is_invocable_r<R, F, Args...>::value, R>::type
@@ -233,7 +240,7 @@ namespace dlib
         return dlib::invoke(std::forward<F>( f ), std::forward<Args>( args )...);
     }
 
-    // ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
 
     namespace detail
     {
@@ -247,7 +254,9 @@ namespace dlib
             return dlib::invoke(std::forward<F>(fn),
                                 std::get<I>(std::forward<Tuple>(tpl))...);
         }
-    }
+    } // end namespace detail
+
+// ----------------------------------------------------------------------------------------
 
     template<typename F, typename Tuple>
     constexpr auto apply(F&& fn, Tuple&& tpl)
@@ -268,7 +277,7 @@ namespace dlib
                                   make_index_sequence<std::tuple_size<typename std::remove_reference<Tuple>::type >::value>{});
     }
 
-    // ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
 
     namespace detail
     {
@@ -277,7 +286,9 @@ namespace dlib
         {
             return T(std::get<I>(std::forward<Tuple>(t))...);
         }
-    }
+    } // end namespace detail
+
+// ----------------------------------------------------------------------------------------
 
     template <class T, class Tuple>
     constexpr T make_from_tuple( Tuple&& t )
@@ -291,7 +302,8 @@ namespace dlib
                                                make_index_sequence<std::tuple_size<typename std::remove_reference<Tuple>::type >::value>{});
     }
 
-    // ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
+
 }
 
 #endif //DLIB_INVOKE_Hh_
