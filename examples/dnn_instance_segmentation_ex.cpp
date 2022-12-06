@@ -68,7 +68,7 @@ try
 
     // Find supported image files.
     const std::vector<file> files = dlib::get_files_in_directory_tree(argv[1],
-        dlib::match_endings(".jpeg .jpg .png"));
+        dlib::match_endings(".jpeg .jpg .png .webp"));
 
     dlib::rand rnd;
 
