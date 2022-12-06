@@ -6,7 +6,6 @@
 #include "loss_abstract.h"
 #include "core.h"
 #include "utilities.h"
-#include "misc.h"
 #include "../matrix.h"
 #include "../cuda/tensor_tools.h"
 #include "../geometry.h"
@@ -3906,7 +3905,7 @@ namespace dlib
             if (count != tag_count())
                 throw serialization_error("Invalid number of detection tags " + std::to_string(count) +
                                           ", while deserializing dlib::loss_yolo_, expecting " +
-                                          std::to_string(tag_count()) + "tags instead.");
+                                          std::to_string(tag_count()) + " tags instead.");
             deserialize(item.options, in);
         }
 
