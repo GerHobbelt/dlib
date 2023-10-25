@@ -31,6 +31,22 @@ namespace dlib
 
 // ---------------------------------------------------------------------------------------------------
 
+        dlib::logger& logger_ffmpeg();
+        /*!
+            ensures
+                - Returns a global logger used by the internal ffmpeg libraries. 
+                - You may set the logging level using .set_level() to supress or enable certain logs.
+        !*/
+
+        dlib::logger& logger_dlib_wrapper();
+        /*!
+            ensures
+                - Returns a global logger used by dlib's ffmpeg wrappers.
+                - You may set the logging level using .set_level() to supress or enable certain logs.
+        !*/
+
+// ---------------------------------------------------------------------------------------------------
+
         class frame
         {
         public:
@@ -296,55 +312,73 @@ namespace dlib
         {
             /*!
                 WHAT THIS OBJECT REPRESENTS
-                    This object informs on available devices provided by the installation of ffmpeg dlib is linked against.
+                    This object informs on available device types provided by the installation of ffmpeg dlib is linked against.
             !*/
 
-            struct instance
-            {
-                std::string name;
-                std::string description;
-            };
-
             std::string device_type;
-            std::vector<instance> devices;
+            bool        is_audio_type{false};
+            bool        is_video_type{false};
         };
         
-        std::vector<std::string> list_protocols();
+        struct device_instance
+        {
+            /*!
+                WHAT THIS OBJECT REPRESENTS
+                    This object informs on the currently available device instances readable by ffmpeg.
+            !*/
+
+            std::string name;
+            std::string description;
+        };
+
+        const std::vector<std::string>& list_protocols();
         /*!
             ensures
-                - returns a list of all registered ffmpeg protocols
+                - returns a list of all available ffmpeg protocols
         !*/
 
-        std::vector<std::string> list_demuxers();
+        const std::vector<std::string>& list_demuxers();
         /*!
             ensures
-                - returns a list of all registered ffmpeg demuxers
+                - returns a list of all available ffmpeg demuxers
         !*/
 
-        std::vector<muxer_details> list_muxers();
+        const std::vector<muxer_details>& list_muxers();
         /*!
             ensures
-                - returns a list of all registered ffmpeg muxers
+                - returns a list of all available ffmpeg muxers
         !*/
         
-        std::vector<codec_details> list_codecs();
+        const std::vector<codec_details>& list_codecs();
         /*!
             ensures
-                - returns a list of all registered ffmpeg codecs with information on whether decoding and/or encoding is supported.
+                - returns a list of all available ffmpeg codecs with information on whether decoding and/or encoding is supported.
                   Note that not all codecs support encoding, unless your installation of ffmpeg is built with third party library
                   dependencies like libx264, libx265, etc.
         !*/
 
-        std::vector<device_details> list_input_devices();
+        const std::vector<device_details>& list_input_device_types();
         /*!
             ensures
-                - returns a list of all registered ffmpeg input devices and available instances of those devices
+                - returns a list of all available ffmpeg input device types (e.g. alsa, v4l2, etc)
         !*/
 
-        std::vector<device_details> list_output_devices();
+        const std::vector<device_details>& list_output_device_types();
         /*!
             ensures
-                - returns a list of all registered ffmpeg output devices and available instances of those devices
+                - returns a list of all available ffmpeg output device types (e.g. alsa, v4l2, etc)
+        !*/
+
+        std::vector<device_instance> list_input_device_instances(const std::string& device_type);
+        /*!
+            ensures
+                - returns a list of all available ffmpeg input device instances for device type *device_type (e.g. hw:0,0, /dev/video0, etc)
+        !*/
+
+        std::vector<device_instance> list_output_device_instances(const std::string& device_type);
+        /*!
+            ensures
+                - returns a list of all available ffmpeg output device instances for device type *device_type (e.g. hw:0,0, /dev/video0, etc)
         !*/
 
 // ---------------------------------------------------------------------------------------------------
@@ -1012,6 +1046,22 @@ namespace dlib
                         - returns 0
             !*/
         };
+
+// ---------------------------------------------------------------------------------------------------
+
+        template <typename image_type>
+        std::enable_if_t<is_image_type<image_type>::value, void>
+        load_frame(
+            image_type& image,
+            const std::string& file_name
+        );
+        /*!
+            requires
+                - image_type must be a type conforming to the generic image interface.
+            ensures
+                - reads the first frame of the image or video pointed by file_name and
+                  loads into image.
+        !*/
 
 // ---------------------------------------------------------------------------------------------------
 
