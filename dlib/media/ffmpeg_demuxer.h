@@ -1070,7 +1070,6 @@ namespace dlib
             Callback&&      clb
         )
         {
-            using namespace std;
             using namespace details;
 
             if (!is_open())
@@ -1233,7 +1232,6 @@ namespace dlib
 
         inline bool demuxer::open(const args& a)
         {
-            using namespace std;
             using namespace std::chrono;
             using namespace details;
 
@@ -1442,7 +1440,6 @@ namespace dlib
 
         inline bool demuxer::fill_queue()
         {
-            using namespace std;
             using namespace details;
 
             if (!st.frame_queue.empty())
@@ -1630,7 +1627,7 @@ namespace dlib
         inline void load_frame(image_type& image, const std::string& file_name)
         {
             if (!demuxer({file_name, video_enabled, audio_disabled}).read(image))
-                throw error("ffmpeg::load_frame: error while loading " + file_name);
+                throw error(EIMAGE_LOAD, "ffmpeg::load_frame: error while loading " + file_name);
         }
 
 // ---------------------------------------------------------------------------------------------------

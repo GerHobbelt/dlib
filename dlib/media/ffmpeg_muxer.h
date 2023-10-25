@@ -251,6 +251,33 @@ namespace dlib
                       or an error occurred, in which case is_open() == false.
             !*/
 
+            template <
+              class image_type,
+              class Callback,
+              is_image_check<image_type> = true
+            >
+            bool push (
+                const image_type& img,
+                Callback&& sink
+            );
+            /*!
+                requires
+                    - is_image_encoder() == true
+                    - sink is set to a valid callback with signature bool(size_t, const char*)
+                      for writing packet data. dlib/media/sink.h contains callback wrappers for
+                      different buffer types.
+                    - sink does not call encoder::push() or encoder::flush(),
+                      i.e., the callback does not create a recursive loop. 
+                ensures
+                    - Encodes img using the constructor arguments, which may incur a resizing
+                      operation if the image dimensions and pixel type don't match the codec. 
+                    - The sink callback may or may not be invoked as the underlying codec 
+                      can buffer if necessary.
+                    - Returns true if successfully encoded, even if sink wasn't invoked.
+                    - Returns false if either EOF, i.e. flush() has been previously called,
+                      or an error occurred, in which case is_open() == false.
+            !*/
+
             template <class Callback>
             void flush (
                 Callback&& sink
@@ -565,6 +592,23 @@ namespace dlib
                       or an error occurred, in which case is_open() == false.
             !*/
 
+            template <
+              class image_type,
+              is_image_check<image_type> = true
+            >
+            bool push(const image_type& img);
+            /*!
+                requires
+                    - is_image_encoder() == true
+                ensures
+                    - Encodes img using the constructor arguments, which may incur a resizing
+                      operation if the image dimensions and pixel type don't match the codec. 
+                    - Encodes and writes the encoded data to file/socket
+                    - Returns true if successfully encoded.
+                    - Returns false if either EOF, i.e. flush() has been previously called,
+                      or an error occurred, in which case is_open() == false.
+            !*/
+
             void flush();
             /*!
                 ensures
@@ -589,6 +633,24 @@ namespace dlib
                 std::chrono::system_clock::time_point   last_read_time{};
             } st;
         };
+
+// ---------------------------------------------------------------------------------------------------
+
+        template <
+          class image_type,
+          is_image_check<image_type> = true
+        >
+        void save_frame(
+            const image_type& image,
+            const std::string& file_name,
+            const std::unordered_map<std::string, std::string>& codec_options = {}
+        );
+        /*!
+            requires
+                - image_type must be a type conforming to the generic image interface.
+            ensures
+                - encodes the image into the file pointed by file_name using options described in codec_options.
+        !*/
 
 // ---------------------------------------------------------------------------------------------------
 
@@ -778,9 +840,63 @@ namespace dlib
                 }
 #endif
             }
-        }
 
 // ---------------------------------------------------------------------------------------------------
+
+            inline bool check_codecs (
+                const bool              is_video,
+                const std::string&      filename,
+                const AVOutputFormat*   oformat,
+                encoder::args&          args
+            )
+            {
+                // Check the codec is supported by this muxer
+                const auto supported_codecs = list_codecs_for_muxer(oformat);
+
+                const auto codec_supported = [&](AVCodecID id, const std::string& name)
+                {
+                    return std::find_if(begin(supported_codecs), end(supported_codecs), [&](const auto& supported) {
+                        return id != AV_CODEC_ID_NONE ? id == supported.codec_id : name == supported.codec_name;
+                    }) != end(supported_codecs);
+                };
+
+                if (codec_supported(args.args_codec.codec, args.args_codec.codec_name))
+                    return true;
+
+                logger_dlib_wrapper() << LWARN
+                    << "Codec " << avcodec_get_name(args.args_codec.codec) << " or " << args.args_codec.codec_name
+                    << " cannot be stored in this file";
+
+                // Pick codec based on file extension
+                args.args_codec.codec = pick_codec_from_filename(filename);
+
+                if (codec_supported(args.args_codec.codec, ""))
+                {
+                    logger_dlib_wrapper() << LWARN  << "Picking codec " << avcodec_get_name(args.args_codec.codec);
+                    return true;
+                }
+                    
+                // Pick the default codec as suggested by FFmpeg
+                args.args_codec.codec = is_video ? oformat->video_codec : oformat->audio_codec;
+
+                if (args.args_codec.codec != AV_CODEC_ID_NONE)
+                {
+                    logger_dlib_wrapper() << LWARN  << "Picking default codec " << avcodec_get_name(args.args_codec.codec);
+                    return true;
+                }
+                    
+                logger_dlib_wrapper() << LWARN 
+                    << "List of supported codecs for muxer " << oformat->name << " in this installation of ffmpeg:";
+
+                for (const auto& supported : supported_codecs)
+                    logger_dlib_wrapper() << LWARN << "    " << supported.codec_name;
+                        
+                return false;
+            }
+
+// ---------------------------------------------------------------------------------------------------
+
+        }
 
         inline encoder::encoder(
             const args& a
@@ -792,7 +908,6 @@ namespace dlib
 
         inline bool encoder::open()
         {
-            using namespace std;
             using namespace details;
 
             register_ffmpeg();
@@ -1019,6 +1134,27 @@ namespace dlib
             return state != ENCODE_ERROR;
         }
 
+        template <
+            class image_type,
+            class Callback,
+            is_image_check<image_type>
+        >
+        inline bool encoder::push (
+            const image_type& img,
+            Callback&& sink
+        )
+        {
+            // Unfortunately, FFmpeg assumes all data is over-aligned, and therefore,
+            // even though the API has facilities to convert img directly to a frame object,
+            // we cannot use it because it assumes the data in img is over-aligned, and of 
+            // course, it is not. Shame. At some point, I'll more digging to see if we 
+            // can get around this without doing a brute force copy like below.
+            using namespace details;
+            frame f;
+            convert(img, f);
+            return push(std::move(f), std::forward<Callback>(sink));
+        }
+
         template <class Callback>
         inline void encoder::flush(Callback&& clb)
         {
@@ -1076,7 +1212,6 @@ namespace dlib
 
         inline bool muxer::open(const args& a)
         {
-            using namespace std;
             using namespace std::chrono;
             using namespace details;
 
@@ -1125,37 +1260,8 @@ namespace dlib
                 if (st.pFormatCtx->oformat->flags & AVFMT_GLOBALHEADER)
                     args.args_codec.flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
-                // Before we create the encoder, check the codec is supported by this muxer
-                const auto supported_codecs = list_codecs_for_muxer(st.pFormatCtx->oformat);
-
-                if (std::find_if(begin(supported_codecs), end(supported_codecs), [&](const auto& supported) {
-                    return args.args_codec.codec != AV_CODEC_ID_NONE ? 
-                                supported.codec_id   == args.args_codec.codec :
-                                supported.codec_name == args.args_codec.codec_name;
-                }) == end(supported_codecs))
-                {
-                    logger_dlib_wrapper() << LWARN
-                        << "Codec " << avcodec_get_name(args.args_codec.codec) << " or " << args.args_codec.codec_name
-                        << " cannot be stored in this file";
-                    
-                    args.args_codec.codec = is_video ? st.pFormatCtx->oformat->video_codec : 
-                                                       st.pFormatCtx->oformat->audio_codec;
-                    
-                    if (args.args_codec.codec != AV_CODEC_ID_NONE)
-                    {
-                        logger_dlib_wrapper() << LWARN 
-                            << "Picking default codec " << avcodec_get_name(args.args_codec.codec);
-                    }
-                    else
-                    {
-                        logger_dlib_wrapper() << LWARN 
-                            << "List of supported codecs for muxer " << st.pFormatCtx->oformat->name << " in this installation of ffmpeg:";
-                        for (const auto& supported : supported_codecs)
-                            logger_dlib_wrapper() << LWARN << "    " << supported.codec_name;
-                        
-                        return false;
-                    }    
-                }
+                if (!check_codecs(is_video, st.args_.filepath, st.pFormatCtx->oformat, args))
+                    return false;
 
                 // Codec is supported by muxer, so create encoder
                 enc = encoder(args);
@@ -1243,7 +1349,6 @@ namespace dlib
 
         inline bool muxer::push(frame f)
         {
-            using namespace std;
             using namespace details;
 
             if (!is_open())
@@ -1266,6 +1371,19 @@ namespace dlib
             }
 
             return false;
+        }
+
+        template <
+            class image_type,
+            is_image_check<image_type>
+        >
+        bool muxer::push(const image_type& img)
+        {
+            using namespace details;
+
+            return is_open() &&
+                   st.encoder_image.is_open() &&
+                   st.encoder_image.push(img, muxer_sink(st.pFormatCtx.get(), st.stream_id_video));
         }
 
         inline void muxer::flush()
@@ -1305,6 +1423,36 @@ namespace dlib
         inline AVSampleFormat   muxer::sample_fmt()             const noexcept { return st.encoder_audio.sample_fmt(); }
         inline AVCodecID        muxer::get_audio_codec_id()     const noexcept { return st.encoder_audio.get_codec_id(); }
         inline std::string      muxer::get_audio_codec_name()   const noexcept { return st.encoder_audio.get_codec_name(); }
+
+// ---------------------------------------------------------------------------------------------------
+
+        template <
+          class image_type,
+          is_image_check<image_type>
+        >
+        inline void save_frame(
+            const image_type& image,
+            const std::string& file_name,
+            const std::unordered_map<std::string, std::string>& codec_options
+        )
+        {
+            muxer writer([&] {
+                muxer::args args;
+                args.filepath               = file_name;
+                args.enable_image           = true;
+                args.enable_audio           = false;
+                args.args_image.h           = num_rows(image);
+                args.args_image.w           = num_columns(image);
+                args.args_image.framerate   = 1;
+                args.args_image.fmt         = pix_traits<pixel_type_t<image_type>>::fmt;
+                args.args_image.codec_options = codec_options;
+                args.format_options["update"] = "1";
+                return args;
+            }());
+
+            if (!writer.push(image))
+                throw error(EIMAGE_SAVE, "ffmpeg::save_frame: error while saving " + file_name);
+        }
 
 // ---------------------------------------------------------------------------------------------------
 

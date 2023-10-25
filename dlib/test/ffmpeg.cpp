@@ -146,6 +146,21 @@ namespace
         DLIB_TEST_MSG(similarity > 25.0, "psnr " << similarity);
     }
 
+    template<class pixel_type>
+    void test_load_save_frame(const std::string& filename)
+    {
+        matrix<pixel_type> img1, img2;
+        img1 = get_random_image<pixel_type>();
+
+        save_frame(img1, filename, {{"qmin", "1"}, {"qmax", "1"}});
+        load_frame(img2, filename);
+
+        DLIB_TEST(img1.nr() == img2.nr());
+        DLIB_TEST(img1.nc() == img2.nc());
+        const double similarity = psnr(img1, img2);
+        DLIB_TEST_MSG(similarity > 20.0, "psnr " << similarity);
+    }
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // DECODER
@@ -584,7 +599,82 @@ namespace
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void test_muxer (
+    template<class image_type>
+    void test_muxer1 (
+        const std::string& filepath,
+        AVCodecID image_codec
+    )
+    {
+        const std::string tmpfile = "dummy.avi";
+
+        // Load a video/audio as a source of frames
+        demuxer cap({filepath, video_enabled, audio_disabled});
+        DLIB_TEST(cap.is_open());
+        DLIB_TEST(cap.video_enabled());
+        DLIB_TEST(!cap.audio_enabled());
+        const int height = cap.height();
+        const int width  = cap.width();
+
+        // Open muxer
+        muxer writer([&] {
+            muxer::args args;
+            args.filepath = tmpfile;
+            args.enable_audio = false;
+            args.args_image.codec        = image_codec;
+            args.args_image.h            = cap.height();
+            args.args_image.w            = cap.width();
+            args.args_image.framerate    = cap.fps();
+            args.args_image.fmt          = AV_PIX_FMT_YUV420P;
+            return args;
+        }());
+
+        DLIB_TEST(writer.is_open());
+        DLIB_TEST(!writer.audio_enabled());
+        DLIB_TEST(writer.video_enabled());
+
+        DLIB_TEST(writer.get_video_codec_id()   == image_codec);
+        DLIB_TEST(writer.height()               == cap.height());
+        DLIB_TEST(writer.width()                == cap.width());
+
+        // Demux then remux
+        int nimages_demuxed{0};
+        image_type img;
+
+        while (cap.read(img))
+        {
+            ++nimages_demuxed;
+            DLIB_TEST(img.nr() == height);
+            DLIB_TEST(img.nc() == width);
+            DLIB_TEST(writer.push(img));
+
+            if (nimages_demuxed % 10 == 0)
+                print_spinner();
+        }
+
+        writer.flush();
+
+        // Demux everything back
+        demuxer cap2(tmpfile);
+        DLIB_TEST(cap2.is_open());
+        DLIB_TEST(cap2.video_enabled());
+        DLIB_TEST(!cap2.audio_enabled());
+        DLIB_TEST(cap2.get_video_codec_id() == image_codec);
+        DLIB_TEST(cap2.height() == height);
+        DLIB_TEST(cap2.width()  == width);
+
+        int nimages_muxed{0};
+
+        while (cap2.read(img))
+        {
+            ++nimages_muxed;
+            if (nimages_muxed % 10 == 0)
+                print_spinner();
+        }
+
+        DLIB_TEST(nimages_muxed == nimages_demuxed);
+    }
+
+    void test_muxer2 (
         const std::string& filepath,
         AVCodecID image_codec,
         AVCodecID audio_codec
@@ -709,6 +799,13 @@ namespace
         DLIB_TEST(samples <= (nsamples + rate));
     }
 
+    const auto codec_supported = [](const AVCodecID id)
+    {
+        return std::find_if(begin(list_codecs()), end(list_codecs()), [=](const auto& supported) {
+            return supported.codec_id == id && supported.supports_encoding;
+        }) != end(list_codecs());
+    };
+
     class video_tester : public tester
     {
     public:
@@ -727,6 +824,30 @@ namespace
                 test_frame<bgr_pixel>();
                 test_frame<rgb_alpha_pixel>();
                 test_frame<bgr_alpha_pixel>();
+
+                if (codec_supported(AV_CODEC_ID_PNG))
+                {
+                    test_load_save_frame<rgb_pixel>("dummy.png");
+                    test_load_save_frame<bgr_pixel>("dummy.png");
+                }
+
+                if (codec_supported(AV_CODEC_ID_MJPEG))
+                {
+                    test_load_save_frame<rgb_pixel>("dummy.jpg");
+                    test_load_save_frame<bgr_pixel>("dummy.jpg");
+                }
+
+                if (codec_supported(AV_CODEC_ID_BMP))
+                {
+                    test_load_save_frame<rgb_pixel>("dummy.bmp");
+                    test_load_save_frame<bgr_pixel>("dummy.bmp");
+                }
+
+                if (codec_supported(AV_CODEC_ID_TIFF))
+                {
+                    test_load_save_frame<rgb_pixel>("dummy.tiff");
+                    test_load_save_frame<bgr_pixel>("dummy.tiff");
+                }
             }
 
             dlib::file f(DLIB_FFMPEG_DATA);
@@ -802,7 +923,14 @@ namespace
 
                     test_demuxer_full(filepath, nframes, height, width, sample_rate, has_video, has_audio);
                     test_encoder(filepath, AV_CODEC_ID_MPEG4, AV_CODEC_ID_AC3);
-                    test_muxer(filepath, AV_CODEC_ID_MPEG4, AV_CODEC_ID_AC3);
+                    
+                    if (has_video)
+                    {
+                        test_muxer1<array2d<rgb_pixel>>(filepath, AV_CODEC_ID_MPEG4);
+                        test_muxer1<matrix<bgr_pixel>>(filepath, AV_CODEC_ID_MPEG4);
+                    }
+                    
+                    test_muxer2(filepath, AV_CODEC_ID_MPEG4, AV_CODEC_ID_AC3);
                 }
             }
         }
