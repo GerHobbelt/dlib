@@ -32,6 +32,14 @@ body:
     validations:
       required: true
   - type: input
+    id: python
+    attributes:
+      label: Python version
+      description: "The version of Python you are using"
+      placeholder: "3.8"
+    validations:
+      required: false
+  - type: input
     id: compiler
     attributes:
       label: Compiler
@@ -56,12 +64,14 @@ body:
       required: true
   - type: textarea
     id: reproduce
+    validations:
+      required: true    
     attributes:
       label: Steps to Reproduce
       description: Steps to reproduce the behavior
       placeholder: |
         Please include as much information as possible that can help to reproduce and
-        understand the issue.
+        understand the issue.  Including a minimal example that reproduces the bug is very useful.
 
   - type: textarea
     id: other
