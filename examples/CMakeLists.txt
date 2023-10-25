@@ -106,6 +106,8 @@ target_link_libraries(assignment_learning_ex dlib::dlib)
 macro(add_example name)
    add_executable(${name} ${name}.cpp)
    target_link_libraries(${name} dlib::dlib )
+   # And strip symbols to make your binary smaller if you like.  Certainly not required though.
+   target_link_options(${name} PRIVATE $<$<CONFIG:RELEASE>:-s>)
 endmacro()
 
 # if an example requires GUI, call this macro to check DLIB_NO_GUI_SUPPORT to include or exclude
@@ -227,6 +229,14 @@ if (DLIB_LINK_WITH_SQLITE3)
    add_example(sqlite_ex)
 endif()
 
+if (DLIB_USE_FFMPEG AND NOT DLIB_NO_GUI_SUPPORT)
+   add_example(ffmpeg_webcam_face_pose_ex)
+   add_example(ffmpeg_video_demuxing)
+   add_example(ffmpeg_video_decoding)
+   add_example(ffmpeg_info)
+   add_example(ffmpeg_screen_grab)
+endif()
+
 if (DLIB_NO_GUI_SUPPORT)
    message("No GUI support, so we won't build the webcam_face_pose_ex example.")
 else()
@@ -240,4 +250,3 @@ else()
       message("OpenCV not found, so we won't build the webcam_face_pose_ex example.")
    endif()
 endif()
-
