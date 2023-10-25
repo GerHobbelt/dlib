@@ -107,7 +107,7 @@ macro(add_example name)
    add_executable(${name} ${name}.cpp)
    target_link_libraries(${name} dlib::dlib )
 
-   if(${CMAKE_VERSION} VERSION_GREATER "3.8.0") 
+   if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0") 
    # And strip symbols to make your binary smaller if you like.  Certainly not
    # required though.
        target_link_options(${name} PRIVATE $<$<CONFIG:RELEASE>:-s>)
@@ -239,6 +239,7 @@ if (DLIB_USE_FFMPEG AND NOT DLIB_NO_GUI_SUPPORT)
    add_example(ffmpeg_video_decoding_ex)
    add_example(ffmpeg_info_ex)
    add_example(ffmpeg_screen_grab_ex)
+   add_example(ffmpeg_video_encoding_ex)
 endif()
 
 if (DLIB_NO_GUI_SUPPORT)
