@@ -3607,29 +3607,37 @@ namespace dlib
                 - col_stride >= 1
 
             WHAT THIS OBJECT REPRESENTS
-                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
-                defined above.  In particular, the output of this layer is simply a copy of
-                the input tensor.  However, it rearranges spatial information along the
-                channel dimension.  The dimensions of the tensor output by this layer are as
-                follows (letting IN be the input tensor and OUT the output tensor):
+                This class implements the EXAMPLE_COMPUTATIONAL_LAYER_ interface, performing a 
+                reorganization of tensor data. It rearranges spatial information along the channel
+                dimension, effectively "folding" spatial dimensions into channels.
+                
+                The dimensions of the output tensor are as follows (letting IN be the input tensor
+                and OUT the output tensor):
                     - OUT.num_samples() == IN.num_samples()
                     - OUT.k()  == IN.k() * row_stride * col_stride
                     - OUT.nr() == IN.nr() / row_stride
                     - OUT.nc() == IN.nc() / col_stride
 
-                So the output will always have the same number of samples as the input, but
-                within each sample (the k,nr,nc part) we will reorganize the values.  To be
-                very precise, we will have, for all n, k, r, c in OUT:
-                OUT.host[tensor_index(OUT, n, k, r, c)] ==
-                IN.host[tensor_index(IN,
-                                      n,
-                                      k % IN.k(),
-                                      r * row_stride + (k / IN.k()) / row_stride,
-                                      c * col_stride + (k / IN.k()) % col_stride)]
+                Therefore, the output tensor maintains the same number of samples as the input but
+                alters the channel and spatial dimensions based on the specified strides.
+                
+                Specifically, for all n, k, r, c in OUT:
+                    OUT.host[tensor_index(OUT, n, k, r, c)] ==
+                    IN.host[tensor_index(IN,
+                                        n,
+                                        k % IN.k(),
+                                        r * row_stride + (k / IN.k()) / col_stride,
+                                        c * col_stride + (k / IN.k()) % col_stride)]
 
+                **Enhancement Note:**  
+                The underlying utility functions (`reorg` and `reorg_gradient`) now include an
+                optional `bool add_to` parameter. While the current implementation uses the default
+                value to maintain existing behavior, this parameter allows for future reversible
+                operations and gradient accumulation flexibility within neural network layers.
 
-                Finally, you can think of this layer as an alternative to a strided convolutonal
-                layer to downsample a tensor.
+                You can think of this layer as an alternative to a strided convolutional layer for
+                downsampling tensors, offering similar spatial reduction with different internal
+                gradient propagation mechanics.
         !*/
 
     public:
@@ -3702,6 +3710,162 @@ namespace dlib
 
     template <typename SUBNET>
     using transpose = add_layer<transpose_, SUBNET>;
+
+// ----------------------------------------------------------------------------------------
+
+    struct neg_infinity_tag {};
+    struct zero_tag {};
+
+    template<typename T>
+    struct is_special_value : std::false_type {};
+    template<>
+    struct is_special_value<neg_infinity_tag> : std::true_type {};
+    template<>
+    struct is_special_value<zero_tag> : std::true_type {};
+
+    template<long diag_, typename tag_, long num_ = 0, long den_ = 1>
+    class tril_
+    {
+        /*!
+            TEMPLATE PARAMETERS
+                - diag_: A long integer specifying the diagonal offset.
+                - tag_: A type tag specifying special values or void for numeric values.
+                - num_: Numerator for numeric diagonal value (default is 0, only used if tag_ is void).
+                - den_: Denominator for numeric diagonal value (default is 1, only used if tag_ is void).
+
+            REQUIREMENTS
+                - diag_ must be an integer.
+                - tag_ must be either neg_infinity_tag, zero_tag, or void.
+                - If tag_ is void, num_ and den_ are used to compute the diagonal value.
+                - If tag_ is neg_infinity_tag or zero_tag, num_ and den_ are ignored.
+
+            WHAT THIS OBJECT REPRESENTS
+                This object implements a layer in a deep neural network that applies a lower triangular mask to
+                its input tensor. The mask is defined such that all elements above the specified diagonal are set
+                to a given value. The diagonal offset and the mask value are determined by the template parameters.
+
+            DIAGONAL VALUE DETERMINATION
+                - If tag_ is neg_infinity_tag: diagonal value is set to negative infinity.
+                - If tag_ is zero_tag: diagonal value is set to zero.
+                - If tag_ is void: diagonal value is set to num_ / den_ as a float.
+
+            DIAGONAL OFFSET
+                The diag_ parameter determines the diagonal above which elements are masked:
+                - diag_ = 0: main diagonal
+                - diag_ > 0: diag_ steps above the main diagonal
+                - diag_ < 0: |diag_| steps below the main diagonal
+
+            EXAMPLE USAGE
+                // Create a layer that masks all elements above the main diagonal with -inf
+                tril_<0, neg_infinity_tag> layer1;
+
+                // Create a layer that masks all elements above the main diagonal with 0
+                tril_<0, zero_tag> layer2;
+
+                // Create a layer that masks all elements above the main diagonal with 0.5
+                tril_<0, void, 1, 2> layer3;
+
+                // Create a layer that masks all elements 5 positions above the main diagonal with -inf
+                tril_<5, neg_infinity_tag> layer4;
+
+                // Create a layer that masks all elements 3 positions below the main diagonal with 0.25
+                tril_<-3, void, 1, 4> layer5;
+
+            SERIALIZATION SUPPORT
+                This object supports serialization and deserialization via the serialize() and deserialize() functions.
+        !*/
+
+    public:
+        tril_() = default;
+        /*!
+            ensures
+                - This object is properly initialized.
+        !*/
+
+        template <typename SUBNET>
+        void setup(const SUBNET& sub);
+        /*!
+            requires
+                - SUBNET is a valid network layer type.
+            ensures
+                - Initializes the mask based on the dimensions of the input tensor from sub.
+        !*/
+
+        template <typename SUBNET>
+        void forward(const SUBNET& sub, resizable_tensor& output);
+        /*!
+            requires
+                - SUBNET is a valid network layer type.
+            ensures
+                - Applies the lower triangular mask to the input tensor from sub and stores the result in output.
+        !*/
+
+        template <typename SUBNET>
+        void backward(const tensor& gradient_input, SUBNET& sub, tensor& params_grad);
+        /*!
+            requires
+                - SUBNET is a valid network layer type.
+            ensures
+                - Computes the gradient of the loss with respect to the input tensor and stores it in sub.
+        !*/
+
+        inline dpoint map_input_to_output(const dpoint& p) const;
+        /*!
+            ensures
+                - Maps a point from the input tensor to the corresponding point in the output tensor.
+        !*/
+
+        inline dpoint map_output_to_input(const dpoint& p) const;
+        /*!
+            ensures
+                - Maps a point from the output tensor to the corresponding point in the input tensor.
+        !*/
+
+        const tensor& get_layer_params() const;
+        /*!
+            ensures
+                - Returns the parameters of this layer.
+        !*/
+
+        tensor& get_layer_params();
+        /*!
+            ensures
+                - Returns the parameters of this layer.
+        !*/
+
+        friend void serialize(const tril_& item, std::ostream& out);
+        /*!
+            ensures
+                - Serializes the state of this object to the given output stream.
+        !*/
+
+        friend void deserialize(tril_& item, std::istream& in);
+        /*!
+            ensures
+                - Deserializes the state of this object from the given input stream.
+        !*/
+
+        friend std::ostream& operator<<(std::ostream& out, const tril_& item);
+        /*!
+            ensures
+                - Prints a human-readable representation of this object to the given output stream.
+        !*/
+
+        friend void to_xml(const tril_& item, std::ostream& out);
+        /*!
+            ensures
+                - Serializes the state of this object to XML format and writes it to the given output stream.
+        !*/
+    };
+
+    template <typename SUBNET>
+    using tril = add_layer<tril_<0, zero_tag>, SUBNET>;
+
+    template <typename SUBNET>
+    using tril_mask = add_layer<tril_<0, neg_infinity_tag>, SUBNET>;
+
+    template <long diag, long num, long den, typename SUBNET>
+    using tril_diag = add_layer<tril_<diag, void, num, den>, SUBNET>;    
 
 // ----------------------------------------------------------------------------------------
 

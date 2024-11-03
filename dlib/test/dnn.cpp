@@ -2025,6 +2025,12 @@ namespace
         }
         {
             print_spinner();
+            tril_<-5, void, 1, 2> l;
+            auto res = test_layer(l);
+            DLIB_TEST_MSG(res, res);
+        }        
+        {
+            print_spinner();
             extract_<0,2,2,2> l;
             auto res = test_layer(l);
             DLIB_TEST_MSG(res, res);
@@ -4406,11 +4412,11 @@ namespace
         resizable_tensor grad_cpu(x), grad_cuda(x);
         tt::tensor_rand rnd;
         rnd.fill_gaussian(x);
-        cpu::reorg(out_cpu, 2, 2, x);
-        cuda::reorg(out_cuda, 2, 2, x);
+        cpu::reorg(false, out_cpu, 2, 2, x);
+        cuda::reorg(false, out_cuda, 2, 2, x);
         DLIB_TEST(max(squared(mat(out_cuda) - mat(out_cpu))) == 0);
-        cpu::reorg_gradient(grad_cpu, 2, 2, out_cpu);
-        cuda::reorg_gradient(grad_cuda, 2, 2, out_cuda);
+        cpu::reorg_gradient(false, grad_cpu, 2, 2, out_cpu);
+        cuda::reorg_gradient(false, grad_cuda, 2, 2, out_cuda);
         DLIB_TEST(max(squared(mat(out_cuda) - mat(out_cpu))) == 0);
 #endif
     }
@@ -4445,6 +4451,47 @@ namespace
             DLIB_TEST(error == 0);
             offset += stride;
         }
+    }
+
+// ----------------------------------------------------------------------------------------
+
+    void test_tril()
+    {
+        print_spinner();        
+        using net_type = tag1<tril_mask<tag2<input<matrix<float>>>>>;
+        net_type net;
+
+        // Input tensor
+        dlib::rand rnd;
+        const int nr = 2, nc = 3;
+        constexpr int n_samples = 3, k = 1;
+        std::vector<matrix<float>> x(n_samples);
+        matrix<float> xtmp(nr, nc);
+        for (int ii = 0; ii < n_samples; ++ii) {
+            for (int jj = 0; jj < nr; ++jj)
+                for (int kk = 0; kk < nc; ++kk)
+                    xtmp(jj, kk) = rnd.get_random_gaussian();
+            x[ii] = xtmp;
+        }
+
+        // Convert input matrix to tensor
+        resizable_tensor input_tensor;
+        net.to_tensor(&x[0], &x[0] + n_samples, input_tensor);
+        net.forward(input_tensor);
+
+        // Expected output tensor (manually set for comparison)
+        resizable_tensor expected_output;
+        expected_output.copy_size(input_tensor);
+        tt::copy_tensor(false, expected_output, 0, input_tensor, 0, input_tensor.k());
+        for (int ii = 0; ii < n_samples; ++ii) {
+            expected_output.host()[tensor_index(expected_output, ii, 0, 0, 1)] = -std::numeric_limits<float>::infinity();
+            expected_output.host()[tensor_index(expected_output, ii, 0, 0, 2)] = -std::numeric_limits<float>::infinity();
+            expected_output.host()[tensor_index(expected_output, ii, 0, 1, 2)] = -std::numeric_limits<float>::infinity();
+        }
+
+        // Compare output tensor with expected output
+        auto& net_output = layer<tag1>(net).get_output();
+        DLIB_TEST(max(abs(mat(net_output) - mat(expected_output))) < 1e-5);
     }
 
 // ----------------------------------------------------------------------------------------
@@ -4527,6 +4574,7 @@ namespace
             test_layer_normalize();
             test_rms_normalize();
             test_transpose();
+            test_tril();
             test_basic_tensor_ops();
             test_layers();
             test_visit_functions();
