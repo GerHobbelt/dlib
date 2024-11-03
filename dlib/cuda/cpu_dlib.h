@@ -250,7 +250,29 @@ namespace dlib
             const tensor& gamma,
             tensor& src_grad,
             tensor& gamma_grad,
-            tensor& beta_grad
+            tensor& beta_grad,
+            resizable_tensor& dmeans,
+            resizable_tensor& dvars
+        );
+
+   // -----------------------------------------------------------------------------------
+
+        void rms_normalize(
+            const double eps,
+            resizable_tensor& dest,
+            resizable_tensor& scale,
+            const tensor& src,
+            const tensor& gamma
+        );
+
+        void rms_normalize_gradient(
+            const tensor& gradient_input,
+            const tensor& scale,
+            const tensor& src,
+            const tensor& gamma,
+            tensor& src_grad,
+            tensor& gamma_grad,
+            resizable_tensor& dscale
         );
 
     // -----------------------------------------------------------------------------------
@@ -647,6 +669,14 @@ namespace dlib
             const tensor& src,
             size_t src_k_offset,
             size_t count_k
+        );
+
+    // -----------------------------------------------------------------------------------
+
+        void transpose(
+            bool add_to,
+            tensor& dest,
+            const tensor& src
         );
 
     // -----------------------------------------------------------------------------------

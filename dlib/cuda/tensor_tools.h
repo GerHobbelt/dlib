@@ -814,13 +814,13 @@ namespace dlib { namespace tt
     /*!
         requires
             - eps > 0
-            - src.num_samples() == gamma.size() == beta.size()
+            - src.k() == gamma.size() == beta.size()
+            - gamma.num_samples() == gamma.nr() == gamma.nc() == 1
             - have_same_dimensions(gamma, beta) == true
-            - beta.num_samples() ==beta.nr() ==gamma.nc() == 1
         ensures
             - have_same_dimensions(#dest, src) == true
             - #means.size() == invstds.size() == src.num_samples()
-            - #dest == the normalized version of src.
+            - #dest == the normalized version of src, sample-wise.
             - #means == the mean values of the contents of src.
             - #invstds == 1/(the standard deviation values of the contents of src).
     !*/
@@ -834,7 +834,9 @@ namespace dlib { namespace tt
             const tensor& gamma,
             tensor& src_grad,
             tensor& gamma_grad,
-            tensor& beta_grad
+            tensor& beta_grad,
+            resizable_tensor& dmeans,
+            resizable_tensor& dvars
     );
     /*!
         requires
@@ -847,8 +849,6 @@ namespace dlib { namespace tt
             - have_same_dimensions(gamma, beta_grad) == true
             - means.size() == src.num_samples()
             - invstds.size() == src.num_samples()
-            - have_same_dimensions(means, gamma) == true
-            - have_same_dimensions(invstds, gamma) == true
         ensures
             - Let f(src,gamma,beta) == dot(gradient_input, dest output of
               layer_normalize(eps,dest,means,invstds,src,gamma,beta))
@@ -857,7 +857,58 @@ namespace dlib { namespace tt
             - Assigns the gradient of f() with respect to beta to #beta_grad.
     !*/
 
-    // -----------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------
+
+    void rms_normalize(
+        const double eps,
+        resizable_tensor& dest,
+        resizable_tensor& scale,
+        const tensor& src,
+        const tensor& gamma
+    );
+    /*!
+        requires
+            - eps > 0
+            - gamma.k() == src.k()
+            - gamma.nr() == 1
+            - gamma.nc() == 1
+        ensures
+            - have_same_dimensions(#dest, src) == true
+            - #scale.size() == src.num_samples()
+            - #dest == the RMS normalized version of src
+            - #scale contains the RMS (Root Mean Square) values used to normalize each sample of src.
+            - Each element of #dest is computed as:
+                - #dest[n, k, i, j] == src[n, k, i, j] * gamma[k] / scale[n]
+            where n is the sample index, k is the channel index, and i, j are the spatial indices.
+    !*/
+
+    void rms_normalize_gradient(
+        const tensor& gradient_input,
+        const tensor& scale,
+        const tensor& src,
+        const tensor& gamma,
+        tensor& src_grad,
+        tensor& gamma_grad,
+        resizable_tensor& dscale
+    );
+    /*!
+        requires
+            - scale.size() == src.num_samples()
+            - have_same_dimensions(gamma, gamma_grad)
+            - gamma.k() == src.k()
+            - gamma.nr() == 1
+            - gamma.nc() == 1
+            - have_same_dimensions(gradient_input, src)
+            - have_same_dimensions(gradient_input, src_grad)
+        ensures
+            - Let f(src, gamma) == dot(gradient_input, dest output of
+                rms_normalize(eps, dest, scale, src, gamma))
+            - Adds the gradient of f() with respect to src to #src_grad
+            - Assigns the gradient of f() with respect to gamma to #gamma_grad
+            - #dscale contains the gradients of f() with respect to the RMS values.
+    !*/
+
+// -----------------------------------------------------------------------------------
 
     void threshold (
         tensor& data,
@@ -2133,6 +2184,32 @@ namespace dlib { namespace tt
             - else
                 - performs: dest[i, k + dest_k_offset, r, c]  = src[i, k + src_k_offset, r, c], where k in [0..count_k]
                   i.e., copies content of each sample from src in to corresponding place of sample at dest.
+    !*/
+
+// ----------------------------------------------------------------------------------------
+
+    void transpose(
+        bool add_to,
+        tensor& dest,
+        const tensor& src
+    );
+    /*!
+        requires
+            - is_same_object(dest, src) == false
+            - dest.num_samples() == src.num_samples()
+            - dest.k() == src.k()
+            - dest.nr() == src.nc()
+            - dest.nc() == src.nr()            
+        ensures
+            - Performs a transpose operation on the nr() x nc() matrices within src.
+            - If (add_to) is false:
+                - The result is stored in dest, overwriting its previous contents.
+                - For all valid n, k, r, c:
+                    - #dest(n,k,c,r) == src(n,k,r,c)
+            - If (add_to) is true:
+                - The result is added to the existing contents of dest.
+                - For all valid n, k, r, c:
+                    - #dest(n,k,c,r) == dest(n,k,c,r) + src(n,k,r,c)
     !*/
 
 // ----------------------------------------------------------------------------------------

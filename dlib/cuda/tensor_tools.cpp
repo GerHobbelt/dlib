@@ -684,13 +684,49 @@ namespace dlib { namespace tt
             const tensor& gamma,
             tensor& src_grad,
             tensor& gamma_grad,
-            tensor& beta_grad
+            tensor& beta_grad,
+            resizable_tensor& dmeans,
+            resizable_tensor& dvars
     )
     {
 #ifdef DLIB_USE_CUDA
-        cuda::layer_normalize_gradient(eps, gradient_input, means, invstds, src, gamma, src_grad, gamma_grad, beta_grad);
+        cuda::layer_normalize_gradient(eps, gradient_input, means, invstds, src, gamma, src_grad, gamma_grad, beta_grad, dmeans, dvars);
 #else
-        cpu::layer_normalize_gradient(eps, gradient_input, means, invstds, src, gamma, src_grad, gamma_grad, beta_grad);
+        cpu::layer_normalize_gradient(eps, gradient_input, means, invstds, src, gamma, src_grad, gamma_grad, beta_grad, dmeans, dvars);
+#endif
+    }
+
+// ----------------------------------------------------------------------------------------
+
+    void rms_normalize(
+        const double eps,
+        resizable_tensor& dest,
+        resizable_tensor& scale,
+        const tensor& src,
+        const tensor& gamma
+    )
+    {            
+#ifdef DLIB_USE_CUDA
+        cuda::rms_normalize(eps, dest, scale, src, gamma);
+#else
+        cpu::rms_normalize(eps, dest, scale, src, gamma);
+#endif
+    }
+
+    void rms_normalize_gradient(
+        const tensor& gradient_input,
+        const tensor& scale,
+        const tensor& src,
+        const tensor& gamma,
+        tensor& src_grad,
+        tensor& gamma_grad,
+        resizable_tensor& dscale
+    )
+    {            
+#ifdef DLIB_USE_CUDA
+        cuda::rms_normalize_gradient(gradient_input, scale, src, gamma, src_grad, gamma_grad, dscale);
+#else
+        cpu::rms_normalize_gradient(gradient_input, scale, src, gamma, src_grad, gamma_grad, dscale);
 #endif
     }
 
@@ -1240,6 +1276,21 @@ namespace dlib { namespace tt
         finv(m,out);
 #else
         out = dlib::inv(mat(m));
+#endif
+    }
+
+// ----------------------------------------------------------------------------------------
+
+    void transpose(
+        bool add_to,
+        tensor& dest,
+        const tensor& src
+    )
+    {
+#ifdef DLIB_USE_CUDA
+        cuda::transpose(add_to, dest, src);
+#else
+        cpu::transpose(add_to, dest, src);
 #endif
     }
 
