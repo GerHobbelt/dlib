@@ -444,7 +444,6 @@ if (NOT TARGET dlib)
          hunter_add_package(PNG)
          find_package(PNG CONFIG REQUIRED)
          list(APPEND dlib_needed_private_libraries PNG::png)
-         endif()
          set(source_files ${source_files}
             image_loader/png_loader.cpp
             image_saver/save_png.cpp
